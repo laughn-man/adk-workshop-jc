@@ -1,3 +1,7 @@
+"""
+Module that holds AI tools.
+"""
+
 import urllib.request
 import json
 

@@ -1,20 +1,35 @@
+"""
+Module for call back functions.
+"""
+
 from typing import Optional
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.models.llm_request import LlmRequest
 from google.adk.models.llm_response import LlmResponse
 from google.genai.types import Content, Part
 
-def logging_before_callback(callback_context: CallbackContext, llm_request: LlmRequest) -> Optional[LlmResponse]:
 
+def logging_before_callback(callback_context: CallbackContext,
+                            llm_request: LlmRequest) -> Optional[LlmResponse]:
+    """
+    Logs the agent name and entered value before model call.
+    """
     if llm_request.contents:
         last = llm_request.contents[-1]
         if last.role == "user" and last.parts and last.parts[0].text:
-            print(f"logging_before_callback- Agent: {callback_context.agent_name}, User entered: {last.parts[0].text.strip()}")
+            print(
+                f"logging_before_callback- Agent: {callback_context.agent_name}, User entered: {last.parts[0].text.strip()}"
+            )
 
     return None
 
-def bad_words_before_callback(callback_context: CallbackContext, llm_request: LlmRequest) -> Optional[LlmResponse]:
 
+def bad_words_before_callback(
+        callback_context: CallbackContext,
+        llm_request: LlmRequest) -> Optional[LlmResponse]:
+    """
+    Checks for unacceptable words and returns a content guidelines response.
+    """
     invalid_words = ["bomb", "trust me bro", "break"]
 
     if llm_request.contents:
@@ -23,7 +38,11 @@ def bad_words_before_callback(callback_context: CallbackContext, llm_request: Ll
             text = last.parts[0].text.strip().lower()
 
             if any(word in text for word in invalid_words):
-                return LlmResponse(content=Content(role="Model", parts=[Part(text="Message violates our content guidelines.")]))
+                return LlmResponse(content=Content(
+                    role="Model",
+                    parts=[
+                        Part(text="Message violates our content guidelines.")
+                    ]))
 
     return None
 
@@ -31,7 +50,9 @@ def bad_words_before_callback(callback_context: CallbackContext, llm_request: Ll
 def bad_country_before_callback(
         callback_context: CallbackContext,
         llm_request: LlmRequest) -> Optional[LlmResponse]:
-
+    """
+    Checks to ensure the response is not one of the bad countries.
+    """
     invalid_countries = ["canada", "england", "india", "mexico"]
 
     if llm_request.contents:
@@ -46,8 +67,13 @@ def bad_country_before_callback(
 
     return None
 
-def log_agent_name_before_callback(callback_context: CallbackContext, llm_request: LlmRequest) -> Optional[LlmResponse]:
 
+def log_agent_name_before_callback(
+        callback_context: CallbackContext,
+        llm_request: LlmRequest) -> Optional[LlmResponse]:
+    """
+    Logs the agent name.
+    """
     print(f"Calling agent {callback_context.agent_name}")
 
     return None
@@ -55,7 +81,9 @@ def log_agent_name_before_callback(callback_context: CallbackContext, llm_reques
 
 def chain_before_callback(callback_context: CallbackContext,
                           llm_request: LlmRequest) -> Optional[LlmResponse]:
-
+    """
+    Chains together several before call backs.
+    """
     result = logging_before_callback(callback_context, llm_request)
     if result:
         return result
@@ -68,8 +96,12 @@ def chain_before_callback(callback_context: CallbackContext,
     if result:
         return result
 
-def logging_after_callback(callback_context: CallbackContext, llm_response: LlmResponse) -> Optional[LlmResponse]:
 
+def logging_after_callback(callback_context: CallbackContext,
+                           llm_response: LlmResponse) -> Optional[LlmResponse]:
+    """
+    Logs on an after call back.
+    """
     if llm_response.content and llm_response.content.parts:
         txt = llm_response.content.parts[0].text
         if txt:
