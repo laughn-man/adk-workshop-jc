@@ -1,14 +1,20 @@
+from typing import Any
 from google.adk.agents import BaseAgent
-from google.adk.sessions import InMemorySessionService
-from google.adk.runners import Runner
-from google.genai import types
+from vertexai import agent_engines
+
 from rich.markdown import Markdown
 from rich.console import Console
 
-_SESSION_SERVICE = InMemorySessionService()
-
 _CONSOLE = Console()
 
+async def run_remote_agent_prompt(remote_agent: Any, prompt: str, user_id: str = "user_123"):
+    latest_event: dict[str, Any] = {}
+    async for event in remote_agent.async_stream_query(user_id=user_id, message=prompt):
+        latest_event = event
+        
+    response = latest_event.get("content", {}).get("parts", [{"text": ""}])[0].get("text", "")
+
+    _CONSOLE.print(Markdown(response))
 
 class AgentTester:
 
@@ -16,25 +22,16 @@ class AgentTester:
                  agent: BaseAgent,
                  app_name: str = "App",
                  user_id: str = "user_123"):
+        self._app = agent_engines.AdkApp(agent=agent, app_name=app_name)
         self.app_name = app_name
         self._user_id = user_id
-        self._runner = Runner(
-            agent=agent,
-            app_name=app_name,
-            session_service=_SESSION_SERVICE,
-        )
 
     async def run_prompt(self, prompt: str):
-        session = await _SESSION_SERVICE.create_session(
-            app_name=self.app_name,
-            user_id=self._user_id,
-        )
+        response = ""
+        latest_event: dict[str, Any] = {}
+        async for event in self._app.async_stream_query(user_id=self._user_id, message=prompt):
+            latest_event = event
+            
+        response = latest_event.get("content", {}).get("parts", [{"text": ""}])[0].get("text", "")
 
-        content = types.Content(role="user", parts=[types.Part(text=prompt)])
-
-        async for event in self._runner.run_async(user_id=self._user_id,
-                                                  session_id=session.id,
-                                                  new_message=content):
-            if event.is_final_response():
-                if event.content and event.content.parts:
-                    _CONSOLE.print(Markdown(str(event.content.parts[0].text)))
+        _CONSOLE.print(Markdown(response))
