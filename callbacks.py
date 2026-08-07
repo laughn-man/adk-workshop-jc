@@ -9,7 +9,7 @@ def logging_before_callback(callback_context: CallbackContext, llm_request: LlmR
     if llm_request.contents:
         last = llm_request.contents[-1]
         if last.role == "user" and last.parts and last.parts[0].text:
-            print(f"logging_before_callback- User entered: {last.parts[0].text.strip()}")
+            print(f"logging_before_callback- Agent: {callback_context.agent_name}, User entered: {last.parts[0].text.strip()}")
 
     return None
 

@@ -36,4 +36,6 @@ STAGING_BUCKET = _get_env("STAGING_BUCKET")
 
 GEMINI_MODEL = "gemini-2.5-flash"
 
+GEMINI_LITE_MODEL = "gemini-2.5-flash-lite"
+
 RESOURCES_DIR = Path(__file__).resolve().parent / "resources"
